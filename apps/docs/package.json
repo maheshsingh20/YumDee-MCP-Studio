@@ -1,0 +1,17 @@
+{
+  "name": "yumdee-mcp-studio-docs",
+  "version": "0.1.0",
+  "description": "Documentation site for yumdee-Mcp-studio",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^4.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  }
+}

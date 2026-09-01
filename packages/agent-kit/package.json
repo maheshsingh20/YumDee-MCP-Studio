@@ -1,0 +1,23 @@
+{
+  "name": "@yumdee/mcp-studio-agent-kit",
+  "version": "0.1.0",
+  "description": "Orchestration layer for chaining multiple MCP servers",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "dev": "tsc --watch --incremental",
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@yumdee/mcp-studio-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  }
+}

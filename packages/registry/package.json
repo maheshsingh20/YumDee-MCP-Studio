@@ -1,0 +1,28 @@
+{
+  "name": "@yumdee/mcp-studio-registry",
+  "version": "0.1.0",
+  "description": "Community MCP server registry + CLI installer",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "mcp-studio": "./dist/cli.js"
+  },
+  "scripts": {
+    "dev": "tsc --watch --incremental",
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/ servers/",
+    "validate-listings": "node ./scripts/validate-listings.js",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@yumdee/mcp-studio-core": "workspace:*",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  }
+}
