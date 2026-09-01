@@ -18,6 +18,9 @@
  */
 
 import { z } from "zod";
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 
 export const ServerListingSchema = z.object({
   name: z.string(),
@@ -52,10 +55,27 @@ export class ServerRegistry {
    * (In v1, these are static JSON files; later could be from an API)
    */
   async load(): Promise<void> {
-    // TODO: Implement
-    // - Glob all servers/*.json files
-    // - Parse and validate each with ServerListingSchema
-    // - Store in this.listings Map
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const serversDir = path.resolve(__dirname, "../servers");
+
+    try {
+      const files = await fs.readdir(serversDir);
+      for (const file of files) {
+        if (!file.endsWith(".json")) continue;
+        const filePath = path.join(serversDir, file);
+        try {
+          const content = await fs.readFile(filePath, "utf-8");
+          const parsed = JSON.parse(content);
+          const listing = ServerListingSchema.parse(parsed);
+          this.listings.set(listing.name, listing);
+        } catch (err) {
+          console.warn(`[Registry] Failed to load server listing from ${file}:`, err);
+        }
+      }
+    } catch (err) {
+      console.warn(`[Registry] Could not read servers directory:`, err);
+    }
   }
 
   /**
