@@ -1,0 +1,17 @@
+{
+  "name": "github-mcp",
+  "displayName": "GitHub Integration",
+  "description": "MCP server for GitHub API access. Search repositories, manage issues/PRs, read source code, and more.",
+  "homepage": "https://github.com/modelcontextprotocol/servers/tree/main/src/github",
+  "repository": "https://github.com/modelcontextprotocol/servers",
+  "transport": "stdio",
+  "command": "npx @modelcontextprotocol/server-github",
+  "author": {
+    "name": "Anthropic",
+    "github": "modelcontextprotocol"
+  },
+  "license": "MIT",
+  "tags": ["github", "vcs", "api"],
+  "verified": true,
+  "lastVerified": "2024-01-15T10:00:00Z"
+}

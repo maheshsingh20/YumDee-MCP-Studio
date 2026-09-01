@@ -1,0 +1,17 @@
+{
+  "name": "filesystem-mcp",
+  "displayName": "Filesystem Access",
+  "description": "MCP server for safe, sandboxed access to the local filesystem. Read and write files with configurable permissions.",
+  "homepage": "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem",
+  "repository": "https://github.com/modelcontextprotocol/servers",
+  "transport": "stdio",
+  "command": "npx @modelcontextprotocol/server-filesystem",
+  "author": {
+    "name": "Anthropic",
+    "github": "modelcontextprotocol"
+  },
+  "license": "MIT",
+  "tags": ["filesystem", "files", "io"],
+  "verified": true,
+  "lastVerified": "2024-01-15T10:00:00Z"
+}

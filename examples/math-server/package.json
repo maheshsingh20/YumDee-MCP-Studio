@@ -1,0 +1,16 @@
+{
+  "name": "@yumdee/mcp-studio-examples-math",
+  "version": "0.1.0",
+  "description": "Example MCP server: simple math calculator",
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "postgres-mcp",
+  "displayName": "PostgreSQL Database",
+  "description": "MCP server for querying PostgreSQL databases. Execute SQL queries, inspect schema, and manage connections.",
+  "homepage": "https://github.com/modelcontextprotocol/servers/tree/main/src/postgres",
+  "repository": "https://github.com/modelcontextprotocol/servers",
+  "transport": "stdio",
+  "command": "npx @modelcontextprotocol/server-postgres",
+  "author": {
+    "name": "Anthropic",
+    "github": "modelcontextprotocol"
+  },
+  "license": "MIT",
+  "tags": ["database", "sql", "postgres"],
+  "verified": true,
+  "lastVerified": "2024-01-15T10:00:00Z"
+}
