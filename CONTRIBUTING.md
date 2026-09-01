@@ -12,8 +12,8 @@ Welcome! MCP Studio is an open-source project dedicated to making the Model Cont
 ### Local Development
 
 ```bash
-git clone https://github.com/yumdee/mcp-studio.git
-cd mcp-studio
+git clone https://github.com/maheshsingh20/YumDee-MCP-Studio.git
+cd YumDee-MCP-Studio
 
 # Install dependencies
 pnpm install
@@ -111,7 +111,7 @@ If you need to evolve the schema:
 
 ### Before You Start
 
-- Check [open issues](https://github.com/yumdee/mcp-studio/issues) to avoid duplicate work
+- Check [open issues](https://github.com/maheshsingh20/YumDee-MCP-Studio/issues) to avoid duplicate work
 - For large features, open an issue first to discuss design
 - For registry listings, ensure your server is publicly available
 
@@ -229,8 +229,8 @@ We follow semantic versioning. Release process:
 
 ## Getting Help
 
-- 💬 **Questions?** Open a [discussion](https://github.com/yumdee/mcp-studio/discussions)
-- 🐛 **Found a bug?** Open an [issue](https://github.com/yumdee/mcp-studio/issues)
+- 💬 **Questions?** Open a [discussion](https://github.com/maheshsingh20/YumDee-MCP-Studio/discussions)
+- 🐛 **Found a bug?** Open an [issue](https://github.com/maheshsingh20/YumDee-MCP-Studio/issues)
 - 🤝 **Want to collaborate?** DM on Twitter or email (see profile)
 
 ## Code of Conduct

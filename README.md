@@ -50,8 +50,8 @@ Compliance scoring and reliability benchmarking.
 
 ```bash
 # Clone the repository
-git clone https://github.com/yumdee/mcp-studio.git
-cd mcp-studio
+git clone https://github.com/maheshsingh20/YumDee-MCP-Studio.git
+cd YumDee-MCP-Studio
 
 # Install dependencies (requires pnpm ≥ 8.0.0)
 pnpm install
@@ -209,8 +209,8 @@ See [examples/](./examples/) for sample MCP servers and usage patterns:
 
 ## Community
 
-- 💬 **Questions?** Open a [discussion](https://github.com/yumdee/mcp-studio/discussions)
-- 🐛 **Found a bug?** [Open an issue](https://github.com/yumdee/mcp-studio/issues)
+- 💬 **Questions?** Open a [discussion](https://github.com/maheshsingh20/YumDee-MCP-Studio/discussions)
+- 🐛 **Found a bug?** [Open an issue](https://github.com/maheshsingh20/YumDee-MCP-Studio/issues)
 - 🤝 **Want to contribute?** See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## License
