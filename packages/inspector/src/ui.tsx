@@ -945,11 +945,49 @@ export function InspectorUI({ apiUrl = "http://localhost:3000" }: InspectorUIPro
                 }}
                 onClick={() => {
                   setTransport("stdio");
-                  setCommand("npx @modelcontextprotocol/server-filesystem .");
+                  setCommand("npx -y @modelcontextprotocol/server-everything");
+                }}
+                disabled={connected}
+              >
+                🌐 Official Reference (npm)
+              </button>
+              <button
+                type="button"
+                style={{
+                  backgroundColor: colors.surfaceCard2,
+                  color: colors.accent,
+                  border: colors.border,
+                  borderRadius: "5px",
+                  padding: "3px 8px",
+                  cursor: "pointer",
+                  fontSize: 11,
+                }}
+                onClick={() => {
+                  setTransport("stdio");
+                  setCommand("npx -y @modelcontextprotocol/server-filesystem .");
                 }}
                 disabled={connected}
               >
                 Filesystem
+              </button>
+              <button
+                type="button"
+                style={{
+                  backgroundColor: colors.surfaceCard2,
+                  color: colors.accent,
+                  border: colors.border,
+                  borderRadius: "5px",
+                  padding: "3px 8px",
+                  cursor: "pointer",
+                  fontSize: 11,
+                }}
+                onClick={() => {
+                  setTransport("stdio");
+                  setCommand("npx -y @modelcontextprotocol/server-memory");
+                }}
+                disabled={connected}
+              >
+                Memory Graph
               </button>
               <button
                 type="button"
