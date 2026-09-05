@@ -34,13 +34,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build All Packages
+        run: pnpm build
+
       - name: Type Check & Test
         run: |
           pnpm type-check
           pnpm test
-
-      - name: Build All Packages
-        run: pnpm build
 
       - name: Publish @yumdee/mcp-studio-core
         run: pnpm --filter @yumdee/mcp-studio-core publish --access public --no-git-checks --tag ${{ github.event.inputs.tag || 'latest' }}
