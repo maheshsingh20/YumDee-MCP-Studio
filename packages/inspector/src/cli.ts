@@ -8,25 +8,41 @@
  * Usage:
  *   mcp-studio-inspect                    # Start inspector at localhost:3000
  *   mcp-studio-inspect --port 4000        # Start at custom port
- *   mcp-studio-inspect <command> [args]   # Run command
  */
 
+import * as path from "path";
+import { fileURLToPath } from "url";
 import { createInspector } from "./server.js";
 
 async function main() {
   const args = process.argv.slice(2);
-  const port = parseInt(args.find((arg) => arg.startsWith("--port="))?.split("=")[1] || "3000");
+  let port = 3000;
 
-  const inspector = createInspector({ port });
+  const portFlagIdx = args.indexOf("--port");
+  if (portFlagIdx !== -1 && args[portFlagIdx + 1]) {
+    port = parseInt(args[portFlagIdx + 1], 10) || 3000;
+  } else {
+    const eqMatch = args.find((a) => a.startsWith("--port="));
+    if (eqMatch) {
+      port = parseInt(eqMatch.split("=")[1], 10) || 3000;
+    }
+  }
+
+  let staticDir: string | undefined;
+  try {
+    const currentDir = path.dirname(fileURLToPath(import.meta.url));
+    staticDir = path.resolve(currentDir, "../dist/ui");
+  } catch {}
+
+  const inspector = createInspector({ port, staticDir });
 
   try {
     await inspector.start();
-    console.log(`🔍 Inspector started at http://localhost:${port}`);
-    console.log("   Open in your browser or use the CLI to connect to an MCP server");
+    console.log(`\n🔍 MCP Studio Inspector running at http://localhost:${port}`);
+    console.log("   Open in your browser to debug and replay MCP servers.\n");
 
-    // Handle graceful shutdown
     process.on("SIGINT", async () => {
-      console.log("\n✋ Shutting down...");
+      console.log("\n✋ Shutting down inspector server...");
       await inspector.stop();
       process.exit(0);
     });

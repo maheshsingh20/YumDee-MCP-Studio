@@ -14,7 +14,7 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint src/ servers/",
     "validate-listings": "node ./scripts/validate-listings.js",
-    "test": "vitest"
+    "test": "vitest run"
   },
   "dependencies": {
     "@yumdee/mcp-studio-core": "workspace:*",

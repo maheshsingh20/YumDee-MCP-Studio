@@ -28,7 +28,7 @@
     "build": "tsc",
     "type-check": "tsc --noEmit",
     "lint": "eslint src/",
-    "test": "vitest"
+    "test": "vitest run"
   },
   "dependencies": {
     "zod": "^3.22.0"

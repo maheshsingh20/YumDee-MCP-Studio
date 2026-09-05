@@ -3,20 +3,11 @@
  *
  * Manages the collection of community-submitted MCP server listings.
  * Listings are JSON files in servers/ directory.
- *
- * Schema: Each server listing must have:
- * - name: unique server identifier
- * - displayName: human-readable name
- * - description: what the server does
- * - homepage: link to documentation
- * - repository: GitHub or other repo link
- * - transport: "stdio" | "sse" | "http"
- * - command: (for stdio) executable command
- * - endpoint: (for sse/http) URL
- * - author: name/email of maintainer
- * - license: SPDX license identifier
  */
 
+import { promises as fs } from "fs";
+import * as path from "path";
+import { fileURLToPath } from "url";
 import { z } from "zod";
 
 export const ServerListingSchema = z.object({
@@ -46,16 +37,60 @@ export type ServerListing = z.infer<typeof ServerListingSchema>;
  */
 export class ServerRegistry {
   private listings: Map<string, ServerListing> = new Map();
+  private serversDir?: string;
+
+  constructor(serversDir?: string) {
+    this.serversDir = serversDir;
+  }
 
   /**
-   * Load listings from the registry
-   * (In v1, these are static JSON files; later could be from an API)
+   * Load listings from the registry directory
    */
   async load(): Promise<void> {
-    // TODO: Implement
-    // - Glob all servers/*.json files
-    // - Parse and validate each with ServerListingSchema
-    // - Store in this.listings Map
+    const candidates: string[] = [];
+
+    if (this.serversDir) {
+      candidates.push(path.resolve(this.serversDir));
+    }
+
+    // Resolve relative to module location
+    try {
+      const currentDir = path.dirname(fileURLToPath(import.meta.url));
+      candidates.push(path.resolve(currentDir, "../servers"));
+      candidates.push(path.resolve(currentDir, "../../servers"));
+      candidates.push(path.resolve(process.cwd(), "packages/registry/servers"));
+      candidates.push(path.resolve(process.cwd(), "servers"));
+    } catch {
+      candidates.push(path.resolve(process.cwd(), "packages/registry/servers"));
+    }
+
+    let targetDir: string | null = null;
+    for (const dir of candidates) {
+      try {
+        const stat = await fs.stat(dir);
+        if (stat.isDirectory()) {
+          targetDir = dir;
+          break;
+        }
+      } catch {}
+    }
+
+    if (!targetDir) {
+      return;
+    }
+
+    const files = await fs.readdir(targetDir);
+    for (const file of files) {
+      if (!file.endsWith(".json")) continue;
+      try {
+        const filePath = path.join(targetDir, file);
+        const content = await fs.readFile(filePath, "utf8");
+        const parsed = ServerListingSchema.parse(JSON.parse(content));
+        this.listings.set(parsed.name, parsed);
+      } catch (err) {
+        console.warn(`Warning: failed to load server listing from ${file}:`, err);
+      }
+    }
   }
 
   /**
@@ -66,7 +101,15 @@ export class ServerRegistry {
   }
 
   /**
-   * Search for servers by keyword (name, description, tags)
+   * Manually register or overwrite a server listing
+   */
+  register(listing: ServerListing): void {
+    const validated = ServerListingSchema.parse(listing);
+    this.listings.set(validated.name, validated);
+  }
+
+  /**
+   * Search for servers by keyword (name, displayName, description, tags)
    */
   search(keyword: string): ServerListing[] {
     const lowerKeyword = keyword.toLowerCase();
@@ -90,10 +133,13 @@ export class ServerRegistry {
    * Get servers by tag
    */
   filterByTag(tag: string): ServerListing[] {
-    return Array.from(this.listings.values()).filter((listing) => listing.tags?.includes(tag));
+    const lower = tag.toLowerCase();
+    return Array.from(this.listings.values()).filter((listing) =>
+      listing.tags?.some((t) => t.toLowerCase() === lower)
+    );
   }
 }
 
-export function createRegistry(): ServerRegistry {
-  return new ServerRegistry();
+export function createRegistry(serversDir?: string): ServerRegistry {
+  return new ServerRegistry(serversDir);
 }

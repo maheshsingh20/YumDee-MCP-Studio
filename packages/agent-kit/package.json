@@ -10,7 +10,7 @@
     "build": "tsc",
     "type-check": "tsc --noEmit",
     "lint": "eslint src/",
-    "test": "vitest"
+    "test": "vitest run"
   },
   "dependencies": {
     "@yumdee/mcp-studio-core": "workspace:*"

@@ -1,11 +1,15 @@
 /**
- * Session Storage Interface
+ * Session Storage Implementation
  *
- * Abstract interface for storing and retrieving MCP sessions.
- * Implementations can be local JSON, SQLite, or hosted later.
+ * Concrete implementations of SessionStorage:
+ * - InMemoryStorage (testing & transient dev)
+ * - LocalJsonStorage (persistent ~/.mcp-studio/sessions/)
  */
 
-import { McpSession } from "../schemas/index.js";
+import { promises as fs } from "fs";
+import * as path from "path";
+import * as os from "os";
+import { McpSession, parseSession } from "../schemas/index.js";
 
 export interface SessionStorage {
   /**
@@ -46,13 +50,9 @@ export interface SessionStorage {
 }
 
 // ============================================================================
-// In-Memory Implementation (for testing/development)
+// In-Memory Implementation
 // ============================================================================
 
-/**
- * Simple in-memory session storage
- * Used for testing and development; data is lost on restart
- */
 export class InMemoryStorage implements SessionStorage {
   private sessions: Map<string, McpSession> = new Map();
 
@@ -122,27 +122,57 @@ export class InMemoryStorage implements SessionStorage {
 }
 
 // ============================================================================
-// Local Implementations
+// Local JSON Filesystem Implementation
 // ============================================================================
 
-/**
- * Store sessions as JSON files in the local filesystem
- *
- * Default location: ~/.mcp-studio/sessions/
- */
 export class LocalJsonStorage implements SessionStorage {
-  constructor(baseDir: string = "~/.mcp-studio/sessions") {
-    // TODO: Implement with fs module
-    // - Create baseDir if not exists
-    // - Expand ~ to home directory
+  private baseDir: string;
+  private initialized: boolean = false;
+
+  constructor(baseDir?: string) {
+    if (baseDir) {
+      this.baseDir = baseDir.startsWith("~")
+        ? path.join(os.homedir(), baseDir.slice(1))
+        : path.resolve(baseDir);
+    } else {
+      this.baseDir = path.join(os.homedir(), ".mcp-studio", "sessions");
+    }
+  }
+
+  private async ensureDir(): Promise<void> {
+    if (!this.initialized) {
+      await fs.mkdir(this.baseDir, { recursive: true });
+      this.initialized = true;
+    }
+  }
+
+  private getFilePath(id: string): string {
+    return path.join(this.baseDir, `${id}.json`);
   }
 
   async save(session: McpSession): Promise<string> {
-    throw new Error("Not yet implemented");
+    await this.ensureDir();
+    const filePath = this.getFilePath(session.id);
+    const tempPath = `${filePath}.tmp.${Date.now()}`;
+    const data = JSON.stringify(session, null, 2);
+
+    await fs.writeFile(tempPath, data, "utf8");
+    await fs.rename(tempPath, filePath);
+    return session.id;
   }
 
   async load(id: string): Promise<McpSession> {
-    throw new Error("Not yet implemented");
+    await this.ensureDir();
+    const filePath = this.getFilePath(id);
+    try {
+      const content = await fs.readFile(filePath, "utf8");
+      return parseSession(JSON.parse(content));
+    } catch (err: any) {
+      if (err.code === "ENOENT") {
+        throw new Error(`Session not found: ${id}`);
+      }
+      throw err;
+    }
   }
 
   async list(filter?: {
@@ -151,59 +181,83 @@ export class LocalJsonStorage implements SessionStorage {
     startDate?: Date;
     endDate?: Date;
   }): Promise<McpSession[]> {
-    throw new Error("Not yet implemented");
+    await this.ensureDir();
+    const files = await fs.readdir(this.baseDir);
+    const sessions: McpSession[] = [];
+
+    for (const file of files) {
+      if (!file.endsWith(".json")) continue;
+      try {
+        const filePath = path.join(this.baseDir, file);
+        const content = await fs.readFile(filePath, "utf8");
+        const session = parseSession(JSON.parse(content));
+
+        let matches = true;
+        if (filter?.serverName && session.serverInfo.name !== filter.serverName) {
+          matches = false;
+        }
+        if (filter?.tags && filter.tags.length > 0) {
+          const hasTag = session.metadata?.tags?.some((t) => filter.tags?.includes(t));
+          if (!hasTag) matches = false;
+        }
+        if (filter?.startDate && new Date(session.startedAt) < filter.startDate) {
+          matches = false;
+        }
+        if (filter?.endDate && session.endedAt && new Date(session.endedAt) > filter.endDate) {
+          matches = false;
+        }
+
+        if (matches) {
+          sessions.push(session);
+        }
+      } catch {
+        // Ignore unparseable files
+      }
+    }
+
+    return sessions.sort(
+      (a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
+    );
   }
 
   async delete(id: string): Promise<void> {
-    throw new Error("Not yet implemented");
+    await this.ensureDir();
+    const filePath = this.getFilePath(id);
+    try {
+      await fs.unlink(filePath);
+    } catch (err: any) {
+      if (err.code !== "ENOENT") throw err;
+    }
   }
 
   async update(id: string, updates: Partial<McpSession>): Promise<void> {
-    throw new Error("Not yet implemented");
+    const session = await this.load(id);
+    const updated = {
+      ...session,
+      ...updates,
+      metadata: {
+        ...session.metadata,
+        ...updates.metadata,
+      },
+    };
+    await this.save(updated);
   }
 
   async export(id: string, format: "json" | "jsonl"): Promise<string> {
-    throw new Error("Not yet implemented");
+    const session = await this.load(id);
+    if (format === "json") {
+      return JSON.stringify(session, null, 2);
+    } else if (format === "jsonl") {
+      return session.events.map((event) => JSON.stringify(event)).join("\n");
+    }
+    throw new Error(`Unsupported export format: ${format}`);
   }
 }
 
-/**
- * Store sessions in a local SQLite database
- *
- * Default location: ~/.mcp-studio/sessions.db
- */
-export class LocalSqliteStorage implements SessionStorage {
-  constructor(dbPath: string = "~/.mcp-studio/sessions.db") {
-    // TODO: Implement with better-sqlite3 or sql.js
-  }
-
-  async save(session: McpSession): Promise<string> {
-    throw new Error("Not yet implemented");
-  }
-
-  async load(id: string): Promise<McpSession> {
-    throw new Error("Not yet implemented");
-  }
-
-  async list(filter?: {
-    tags?: string[];
-    serverName?: string;
-    startDate?: Date;
-    endDate?: Date;
-  }): Promise<McpSession[]> {
-    throw new Error("Not yet implemented");
-  }
-
-  async delete(id: string): Promise<void> {
-    throw new Error("Not yet implemented");
-  }
-
-  async update(id: string, updates: Partial<McpSession>): Promise<void> {
-    throw new Error("Not yet implemented");
-  }
-
-  async export(id: string, format: "json" | "jsonl"): Promise<string> {
-    throw new Error("Not yet implemented");
+export class LocalSqliteStorage extends LocalJsonStorage {
+  // SQLite compatibility adapter fallback to LocalJsonStorage
+  constructor(dbPath?: string) {
+    super(dbPath ? path.dirname(dbPath) : undefined);
   }
 }
 
@@ -213,4 +267,8 @@ export class LocalSqliteStorage implements SessionStorage {
 
 export function createMemoryStorage(): SessionStorage {
   return new InMemoryStorage();
+}
+
+export function createJsonStorage(baseDir?: string): SessionStorage {
+  return new LocalJsonStorage(baseDir);
 }
