@@ -12,6 +12,21 @@
 
 import { randomUUID } from "crypto";
 import { McpClient, McpSession, McpEvent, ToolDefinition } from "@yumdee/mcp-studio-core";
+import {
+  SemanticToolRouter,
+  SemanticRouterConfig,
+  RouteResult,
+  SparseSemanticVectorizer,
+  cosineSimilarity,
+} from "./router.js";
+
+export {
+  SemanticToolRouter,
+  SemanticRouterConfig,
+  RouteResult,
+  SparseSemanticVectorizer,
+  cosineSimilarity,
+};
 
 /**
  * Agent configuration
@@ -24,6 +39,12 @@ export interface AgentConfig {
   baseUrl?: string;
   maxSteps?: number;
   systemPrompt?: string;
+  /**
+   * Enable dynamic semantic tool routing using vector embeddings
+   * Prunes unused tools from prompts, drastically reducing tokens and preventing hallucination.
+   */
+  useSemanticRouting?: boolean;
+  semanticRouterConfig?: SemanticRouterConfig;
 }
 
 interface DiscoveredTool {
@@ -44,6 +65,9 @@ export class Agent {
   private baseUrl?: string;
   private maxSteps: number;
   private systemPrompt?: string;
+  private useSemanticRouting: boolean;
+  private router?: SemanticToolRouter;
+  private lastRoutingMetrics?: RouteResult["metrics"];
   private toolsMap: Map<string, DiscoveredTool> = new Map();
   private session?: McpSession;
 
@@ -55,6 +79,10 @@ export class Agent {
     this.baseUrl = config.baseUrl;
     this.maxSteps = config.maxSteps || 10;
     this.systemPrompt = config.systemPrompt;
+    this.useSemanticRouting = config.useSemanticRouting ?? false;
+    if (this.useSemanticRouting) {
+      this.router = new SemanticToolRouter(config.semanticRouterConfig);
+    }
   }
 
   /**
@@ -98,6 +126,11 @@ export class Agent {
   async run(goal: string): Promise<string> {
     await this.discoverTools();
 
+    if (this.useSemanticRouting && this.router) {
+      const toolDefs = Array.from(this.toolsMap.values()).map((t) => t.definition);
+      await this.router.indexTools(toolDefs);
+    }
+
     const sessionId = randomUUID();
     const startedAt = new Date().toISOString();
 
@@ -120,8 +153,19 @@ export class Agent {
     while (currentStep < this.maxSteps) {
       currentStep++;
 
-      // Dispatch to model adapter
-      const stepResponse = await this.callModel(messages);
+      // Dynamically select tools using semantic routing if enabled
+      let activeTools: DiscoveredTool[] = Array.from(this.toolsMap.values());
+      if (this.useSemanticRouting && this.router) {
+        const lastMsg = messages[messages.length - 1]?.content;
+        const query = typeof lastMsg === "string" ? `${goal} ${lastMsg}` : goal;
+        const routeResult = await this.router.route(query);
+        this.lastRoutingMetrics = routeResult.metrics;
+        const selectedNames = new Set(routeResult.selectedTools.map((t) => t.name));
+        activeTools = activeTools.filter((t) => selectedNames.has(t.uniqueName) || selectedNames.has(t.originalName));
+      }
+
+      // Dispatch to model adapter with dynamically routed tools
+      const stepResponse = await this.callModel(messages, activeTools);
 
       if (stepResponse.toolCalls && stepResponse.toolCalls.length > 0) {
         messages.push({
@@ -188,8 +232,9 @@ export class Agent {
       endedAt: new Date().toISOString(),
       events: allEvents,
       metadata: {
-        tags: ["agent-run", this.model],
+        tags: ["agent-run", this.model, ...(this.useSemanticRouting ? ["semantic-routing"] : [])],
         notes: `Goal: ${goal} | Steps: ${currentStep}`,
+        routingMetrics: this.lastRoutingMetrics,
       },
     };
 
@@ -199,7 +244,12 @@ export class Agent {
   /**
    * Internal model dispatch
    */
-  private async callModel(messages: any[]): Promise<{ content?: string; toolCalls?: Array<{ name: string; args: any }> }> {
+  private async callModel(
+    messages: any[],
+    activeTools?: DiscoveredTool[]
+  ): Promise<{ content?: string; toolCalls?: Array<{ name: string; args: any }> }> {
+    const toolsPool = activeTools && activeTools.length > 0 ? activeTools : Array.from(this.toolsMap.values());
+
     if (this.model === "mock") {
       // Deterministic mock agent for tests and headless verification
       const lastMsg = messages[messages.length - 1].content;
@@ -220,7 +270,7 @@ export class Agent {
 
     if (this.model === "ollama") {
       const host = this.baseUrl || process.env.OLLAMA_HOST || "http://localhost:11434";
-      const tools = Array.from(this.toolsMap.values()).map((t) => ({
+      const tools = toolsPool.map((t) => ({
         type: "function",
         function: {
           name: t.uniqueName,
@@ -255,7 +305,7 @@ export class Agent {
       if (!this.apiKey) {
         throw new Error("OPENAI_API_KEY is required for GPT model adapter");
       }
-      const tools = Array.from(this.toolsMap.values()).map((t) => ({
+      const tools = toolsPool.map((t) => ({
         type: "function",
         function: {
           name: t.uniqueName,
@@ -292,7 +342,7 @@ export class Agent {
       if (!this.apiKey) {
         throw new Error("ANTHROPIC_API_KEY is required for Claude model adapter");
       }
-      const tools = Array.from(this.toolsMap.values()).map((t) => ({
+      const tools = toolsPool.map((t) => ({
         name: t.uniqueName,
         description: t.definition.description || "",
         input_schema: t.definition.inputSchema || { type: "object", properties: {} },
@@ -342,8 +392,23 @@ export class Agent {
   getSession(): McpSession | undefined {
     return this.session;
   }
+
+  /**
+   * Get metrics from the latest semantic routing step
+   */
+  getRoutingMetrics(): RouteResult["metrics"] | undefined {
+    return this.lastRoutingMetrics;
+  }
+
+  /**
+   * Get the underlying SemanticToolRouter instance
+   */
+  getRouter(): SemanticToolRouter | undefined {
+    return this.router;
+  }
 }
 
 export function createAgent(config: AgentConfig): Agent {
   return new Agent(config);
 }
+

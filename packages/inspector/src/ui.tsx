@@ -71,6 +71,9 @@ export function InspectorUI({ apiUrl = "http://localhost:3000" }: InspectorUIPro
   const [replayResults, setReplayResults] = useState<any[] | null>(null);
   const [replaying, setReplaying] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [diagnostic, setDiagnostic] = useState<any | null>(null);
+  const [diagnosing, setDiagnosing] = useState(false);
+  const [showDiagnosticModal, setShowDiagnosticModal] = useState(false);
 
   const eventEndRef = useRef<HTMLDivElement>(null);
 
@@ -246,6 +249,56 @@ export function InspectorUI({ apiUrl = "http://localhost:3000" }: InspectorUIPro
       alert("Replay failed: " + err.message);
     } finally {
       setReplaying(false);
+    }
+  };
+
+  const handleDiagnose = async (targetTool?: ToolDef | null, targetArgs?: any, targetError?: any) => {
+    setDiagnosing(true);
+    setShowDiagnosticModal(true);
+    setDiagnostic(null);
+    const toolToInspect = targetTool || selectedTool;
+    const argsToInspect = targetArgs !== undefined ? targetArgs : toolArgs;
+    const errorToInspect =
+      targetError !== undefined
+        ? typeof targetError === "string"
+          ? targetError
+          : JSON.stringify(targetError)
+        : toolResult?.error
+        ? typeof toolResult.error === "string"
+          ? toolResult.error
+          : JSON.stringify(toolResult.error)
+        : "Unknown execution error";
+
+    try {
+      const res = await fetch(`${apiUrl}/api/diagnose`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          toolName: toolToInspect?.name,
+          schema: toolToInspect?.inputSchema,
+          arguments: argsToInspect,
+          error: errorToInspect,
+        }),
+      });
+      const data = await res.json();
+      setDiagnostic(data);
+    } catch (err: any) {
+      setDiagnostic({
+        rootCause: err.message || "Failed to contact diagnostic engine.",
+        category: "SERVER_RUNTIME_ERROR",
+        suggestedFix: "Check that the Inspector API server is running on port 3000.",
+        confidence: 0.5,
+      });
+    } finally {
+      setDiagnosing(false);
+    }
+  };
+
+  const handleApplyFix = (correctedArgs: any) => {
+    if (correctedArgs && typeof correctedArgs === "object") {
+      setToolArgs(correctedArgs);
+      showNotification("✨ AI Suggested Arguments applied to form runner!");
+      setShowDiagnosticModal(false);
     }
   };
 
@@ -1236,6 +1289,30 @@ export function InspectorUI({ apiUrl = "http://localhost:3000" }: InspectorUIPro
                       >
                         {JSON.stringify(toolResult.result || toolResult.error, null, 2)}
                       </pre>
+                      {!toolResult.success && (
+                        <div style={{ marginTop: 10, display: "flex", justifyContent: "flex-end" }}>
+                          <button
+                            type="button"
+                            onClick={() => handleDiagnose(selectedTool, toolArgs, toolResult.error)}
+                            disabled={diagnosing}
+                            style={{
+                              backgroundColor: colors.surfaceCard2,
+                              color: colors.accent,
+                              border: `1px solid ${colors.accent}`,
+                              borderRadius: "5px",
+                              padding: "6px 14px",
+                              fontSize: 12,
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 6,
+                            }}
+                          >
+                            {diagnosing ? "Diagnosing..." : "✨ Diagnose with AI Copilot"}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </>
@@ -1548,6 +1625,210 @@ export function InspectorUI({ apiUrl = "http://localhost:3000" }: InspectorUIPro
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI DIAGNOSTIC COPILOT MODAL */}
+      {showDiagnosticModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.65)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1100,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: colors.surfaceCard1,
+              border: colors.border,
+              borderRadius: "5px",
+              width: "660px",
+              maxWidth: "92vw",
+              maxHeight: "85vh",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            {/* Header */}
+            <div
+              style={{
+                padding: "16px 20px",
+                borderBottom: colors.border,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 18 }}>✨</span>
+                <h3 style={{ margin: 0, fontSize: 17, fontFamily: "'Fraunces', serif", color: colors.textHeading }}>
+                  AI Root Cause Diagnostic & Auto-Fix
+                </h3>
+              </div>
+              <button
+                type="button"
+                style={{ background: "none", border: "none", color: colors.textBody, cursor: "pointer", fontSize: 16 }}
+                onClick={() => {
+                  setShowDiagnosticModal(false);
+                  setDiagnostic(null);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Body */}
+            <div style={{ padding: 22, overflowY: "auto", display: "flex", flexDirection: "column", gap: 16 }}>
+              {diagnosing ? (
+                <div style={{ padding: 40, textAlign: "center", color: colors.textHeading }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, fontFamily: "'Fraunces', serif" }}>
+                    Analyzing tool execution trace...
+                  </div>
+                  <div style={{ fontSize: 12, color: colors.textBody }}>
+                    Evaluating JSON-RPC parameters, schema definitions, and runtime boundary conditions.
+                  </div>
+                </div>
+              ) : diagnostic ? (
+                <>
+                  {/* Category & Confidence Badge */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span
+                      style={{
+                        backgroundColor: colors.accent,
+                        color: colors.btnFilledText,
+                        padding: "3px 10px",
+                        borderRadius: "4px",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        letterSpacing: "0.5px",
+                      }}
+                    >
+                      {diagnostic.category}
+                    </span>
+                    <span style={{ fontSize: 12, color: colors.textBody }}>
+                      Confidence: <strong>{Math.round((diagnostic.confidence || 0.9) * 100)}%</strong>
+                    </span>
+                  </div>
+
+                  {/* Root Cause Card */}
+                  <div
+                    style={{
+                      backgroundColor: colors.bg,
+                      border: colors.border,
+                      borderRadius: "5px",
+                      padding: 14,
+                    }}
+                  >
+                    <h4
+                      style={{
+                        margin: "0 0 6px 0",
+                        fontSize: 13,
+                        fontFamily: "'Fraunces', serif",
+                        color: colors.textHeading,
+                      }}
+                    >
+                      Root Cause
+                    </h4>
+                    <p style={{ margin: 0, fontSize: 13, color: colors.textBody, lineHeight: 1.5 }}>
+                      {diagnostic.rootCause}
+                    </p>
+                  </div>
+
+                  {/* Suggested Fix Card */}
+                  <div
+                    style={{
+                      backgroundColor: colors.bg,
+                      border: colors.border,
+                      borderRadius: "5px",
+                      padding: 14,
+                    }}
+                  >
+                    <h4
+                      style={{
+                        margin: "0 0 6px 0",
+                        fontSize: 13,
+                        fontFamily: "'Fraunces', serif",
+                        color: colors.textHeading,
+                      }}
+                    >
+                      Suggested Remediation
+                    </h4>
+                    <p style={{ margin: 0, fontSize: 13, color: colors.textBody, lineHeight: 1.5 }}>
+                      {diagnostic.suggestedFix}
+                    </p>
+                  </div>
+
+                  {/* Synthesized Corrected Arguments */}
+                  {diagnostic.correctedArgs && (
+                    <div
+                      style={{
+                        backgroundColor: colors.surfaceCard2,
+                        border: colors.border,
+                        borderRadius: "5px",
+                        padding: 14,
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginBottom: 8,
+                        }}
+                      >
+                        <h4
+                          style={{
+                            margin: 0,
+                            fontSize: 13,
+                            fontFamily: "'Fraunces', serif",
+                            color: colors.textHeading,
+                          }}
+                        >
+                          Synthesized Arguments Patch
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={() => handleApplyFix(diagnostic.correctedArgs)}
+                          style={{
+                            backgroundColor: colors.accent,
+                            color: colors.btnFilledText,
+                            border: "none",
+                            borderRadius: "4px",
+                            padding: "6px 14px",
+                            fontSize: 12,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                          }}
+                        >
+                          ✨ Apply to Runner
+                        </button>
+                      </div>
+                      <pre
+                        style={{
+                          margin: 0,
+                          backgroundColor: colors.inputBg,
+                          border: colors.border,
+                          padding: 10,
+                          borderRadius: "4px",
+                          fontSize: 11,
+                          fontFamily: "monospace",
+                          color: colors.textHeading,
+                          overflowX: "auto",
+                        }}
+                      >
+                        {JSON.stringify(diagnostic.correctedArgs, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </>
+              ) : null}
             </div>
           </div>
         </div>

@@ -18,6 +18,19 @@ import {
   createHttpClient,
   createJsonStorage,
 } from "@yumdee/mcp-studio-core";
+import {
+  diagnoseToolFailure,
+  DiagnosticRequest,
+  DiagnosticResult,
+  DiagnosticCategory,
+} from "./diagnostics.js";
+
+export {
+  diagnoseToolFailure,
+  DiagnosticRequest,
+  DiagnosticResult,
+  DiagnosticCategory,
+};
 
 export interface InspectorConfig {
   port: number;
@@ -307,6 +320,16 @@ export class Inspector {
               success: true,
               totalCalls: toolCallRequests.length,
               replays: replayResults,
+            });
+          }
+
+          // POST /api/diagnose - AI Root Cause Diagnostic & Auto-Fix Copilot
+          if (pathname === "/api/diagnose" && req.method === "POST") {
+            const body = await this.parseBody(req);
+            const diagnostic = diagnoseToolFailure(body);
+            return this.sendJson(res, 200, {
+              success: true,
+              ...diagnostic,
             });
           }
 

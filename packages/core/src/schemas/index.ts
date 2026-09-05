@@ -170,6 +170,7 @@ export const McpSessionSchema = z.object({
       tags: z.array(z.string()).optional(),
       notes: z.string().optional(),
     })
+    .passthrough()
     .optional(),
 });
 
