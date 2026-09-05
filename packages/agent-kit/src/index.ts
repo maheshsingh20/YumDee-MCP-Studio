@@ -14,16 +14,16 @@ import { randomUUID } from "crypto";
 import { McpClient, McpSession, McpEvent, ToolDefinition } from "@yumdee/mcp-studio-core";
 import {
   SemanticToolRouter,
-  SemanticRouterConfig,
-  RouteResult,
+  type SemanticRouterConfig,
+  type RouteResult,
   SparseSemanticVectorizer,
   cosineSimilarity,
 } from "./router.js";
 
 export {
   SemanticToolRouter,
-  SemanticRouterConfig,
-  RouteResult,
+  type SemanticRouterConfig,
+  type RouteResult,
   SparseSemanticVectorizer,
   cosineSimilarity,
 };

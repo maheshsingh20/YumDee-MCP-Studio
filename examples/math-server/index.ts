@@ -78,6 +78,19 @@ const TOOLS = [
       required: ["a", "b"],
     },
   },
+  {
+    name: "calculate",
+    description: "Perform basic mathematical calculations (add, subtract, multiply, divide)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        operation: { type: "string", enum: ["add", "subtract", "multiply", "divide"] },
+        a: { type: "number" },
+        b: { type: "number" },
+      },
+      required: ["operation", "a", "b"],
+    },
+  },
 ];
 
 function handleInitialize(request: JsonRpcRequest): JsonRpcResponse {
@@ -132,12 +145,35 @@ function handleToolCall(request: JsonRpcRequest): JsonRpcResponse {
           id: request.id,
           error: {
             code: -32600,
-            message: "Cannot divide by zero",
+            message: "Division by zero is undefined",
           },
         };
       }
       result = a / b;
       break;
+    case "calculate": {
+      const op = args.operation || "add";
+      if (op === "add") result = a + b;
+      else if (op === "subtract") result = a - b;
+      else if (op === "multiply") result = a * b;
+      else if (op === "divide") {
+        if (b === 0) {
+          return {
+            jsonrpc: "2.0",
+            id: request.id,
+            error: { code: -32600, message: "Division by zero is undefined" },
+          };
+        }
+        result = a / b;
+      } else {
+        return {
+          jsonrpc: "2.0",
+          id: request.id,
+          error: { code: -32602, message: `Unsupported operation: ${op}` },
+        };
+      }
+      break;
+    }
     default:
       return {
         jsonrpc: "2.0",
