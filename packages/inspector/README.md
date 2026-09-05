@@ -1,23 +1,74 @@
 # @yumdee/mcp-studio-inspector
 
-Web UI debugger + session replay tool for MCP servers.
+> 🔍 **Open-source Web UI Debugger, Session Replayer, and AI Diagnostic Copilot for the Model Context Protocol (MCP)**
 
-## Features
+[![npm version](https://img.shields.io/npm/v/@yumdee/mcp-studio-inspector.svg)](https://www.npmjs.com/package/@yumdee/mcp-studio-inspector)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)](https://www.typescriptlang.org/)
 
-- Connect to any MCP server (stdio, SSE, HTTP)
-- Live introspection: view tools, resources, prompts with schemas
-- Manual tool invocation with auto-generated forms
-- Session recording + replay (catch regressions)
-- Multi-server session debugging (agent workflows)
-- Export sessions as shareable `.mcpsession.json` files
+Inspect, test, and debug any MCP server (Stdio, SSE, HTTP) with zero configuration. Includes dynamic schema-driven form runners, live latency timelines, regression replays, and an **AI Root-Cause Diagnostic Copilot**.
 
-## Usage
+---
+
+## ⚡ Quickstart (Zero Install)
+
+Run directly in any terminal:
 
 ```bash
-pnpm install @yumdee/mcp-studio-inspector
-mcp-studio-inspect <server-name>
+npx @yumdee/mcp-studio-inspector
 ```
 
-## Development
+Or specify a custom port:
 
-See [../../CONTRIBUTING.md](../../CONTRIBUTING.md)
+```bash
+npx @yumdee/mcp-studio-inspector --port 4000
+```
+
+Then open **`http://localhost:3000`** in your browser!
+
+---
+
+## ✨ Features
+
+- **🌐 Multi-Transport Support**: Connect instantly via `stdio` subprocesses or `http`/`sse` endpoints.
+- **⚡ 1-Click Internet Presets**: Preloaded test buttons for official MCP servers:
+  - `@modelcontextprotocol/server-everything`
+  - `@modelcontextprotocol/server-filesystem`
+  - `@modelcontextprotocol/server-memory`
+- **🩺 AI Root-Cause Diagnostic Copilot**: Automatically diagnoses failed tool invocations, classifies boundary errors, and provides one-click **"Apply to Runner"** parameter auto-fixes.
+- **📜 Live SSE Timeline**: Real-time server-sent event feed with round-trip latency metrics and JSON inspector.
+- **🔁 Session Recording & Regression Replay**: Record testing workflows and diff outputs against past runs.
+- **🎨 Warm Minimalist Design System**: Editorial aesthetic built with Fraunces serif and Plus Jakarta Sans typography, featuring dynamic light and dark theme switching.
+
+---
+
+## 💻 CLI Usage
+
+```bash
+# Start inspector with default settings (port 3000)
+npx @yumdee/mcp-studio-inspector
+
+# Start on custom port
+npx @yumdee/mcp-studio-inspector --port 8080
+```
+
+---
+
+## 📦 Programmatic Usage
+
+You can also mount the Inspector server or React UI programmatically in your own Node.js or Vite projects:
+
+```typescript
+import { createInspector } from "@yumdee/mcp-studio-inspector";
+
+const inspector = createInspector({ port: 3000 });
+await inspector.start();
+console.log("Inspector running on port 3000");
+```
+
+---
+
+## 📄 License
+
+MIT © [Mahesh Singh](https://github.com/maheshsingh20) & YumDee Community
+

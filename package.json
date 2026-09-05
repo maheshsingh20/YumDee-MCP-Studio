@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
+    "start": "node packages/inspector/dist/cli.js",
     "test": "turbo run test",
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",

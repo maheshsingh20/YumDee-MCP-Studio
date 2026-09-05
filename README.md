@@ -101,7 +101,25 @@ The foundational engine powering all MCP Studio tools.
 
 ---
 
-## 🚦 Quick Start
+## ⚡ Instant Quickstart (Zero Install via NPX)
+
+You can launch and run the Inspector debugger directly in any terminal with zero setup:
+
+```bash
+npx @yumdee/mcp-studio-inspector
+```
+
+Or run on a specific port:
+
+```bash
+npx @yumdee/mcp-studio-inspector --port 4000
+```
+
+Open **`http://localhost:3000`** in your browser to inspect servers, test tools, and run the AI Copilot.
+
+---
+
+## 🚦 Local Development & Contribution
 
 ### 1. Prerequisites & Installation
 

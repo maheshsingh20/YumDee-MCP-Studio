@@ -1,0 +1,68 @@
+name: Publish Packages to NPM
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "NPM release tag (e.g. latest, beta)"
+        required: true
+        default: "latest"
+
+jobs:
+  publish:
+    name: Build, Test & Publish to NPM
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://registry.npmjs.org"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type Check & Test
+        run: |
+          pnpm type-check
+          pnpm test
+
+      - name: Build All Packages
+        run: pnpm build
+
+      - name: Publish @yumdee/mcp-studio-core
+        run: pnpm --filter @yumdee/mcp-studio-core publish --access public --no-git-checks --tag ${{ github.event.inputs.tag || 'latest' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @yumdee/mcp-studio-inspector
+        run: pnpm --filter @yumdee/mcp-studio-inspector publish --access public --no-git-checks --tag ${{ github.event.inputs.tag || 'latest' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @yumdee/mcp-studio-agent-kit
+        run: pnpm --filter @yumdee/mcp-studio-agent-kit publish --access public --no-git-checks --tag ${{ github.event.inputs.tag || 'latest' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @yumdee/mcp-studio-bench
+        run: pnpm --filter @yumdee/mcp-studio-bench publish --access public --no-git-checks --tag ${{ github.event.inputs.tag || 'latest' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @yumdee/mcp-studio-registry
+        run: pnpm --filter @yumdee/mcp-studio-registry publish --access public --no-git-checks --tag ${{ github.event.inputs.tag || 'latest' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

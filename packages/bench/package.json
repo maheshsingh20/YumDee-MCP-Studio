@@ -15,6 +15,20 @@
     "lint": "eslint src/",
     "test": "vitest run"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maheshsingh20/YumDee-MCP-Studio.git",
+    "directory": "packages/bench"
+  },
+  "author": "Mahesh Singh <maheshsingh20>",
+  "license": "MIT",
   "dependencies": {
     "@yumdee/mcp-studio-core": "workspace:*"
   },

@@ -30,6 +30,29 @@
     "lint": "eslint src/",
     "test": "vitest run"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maheshsingh20/YumDee-MCP-Studio.git",
+    "directory": "packages/core"
+  },
+  "author": "Mahesh Singh <maheshsingh20>",
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "agent",
+    "ai",
+    "llm",
+    "sessions",
+    "mcp-studio"
+  ],
   "dependencies": {
     "zod": "^3.22.0"
   },

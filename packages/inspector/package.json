@@ -1,13 +1,38 @@
 {
   "name": "@yumdee/mcp-studio-inspector",
   "version": "0.1.0",
-  "description": "Web UI debugger + session replay for MCP servers",
+  "description": "Web UI debugger, session replay, and AI Root-Cause Diagnostic Copilot for Model Context Protocol (MCP) servers",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
+    "mcp-studio-inspector": "./dist/cli.js",
     "mcp-studio-inspect": "./dist/cli.js"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maheshsingh20/YumDee-MCP-Studio.git",
+    "directory": "packages/inspector"
+  },
+  "author": "Mahesh Singh <maheshsingh20>",
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "inspector",
+    "debugger",
+    "ai-diagnostics",
+    "copilot",
+    "agent",
+    "sse"
+  ],
   "scripts": {
     "dev": "concurrently \"tsc --watch\" \"vite\"",
     "build": "tsc && vite build",
