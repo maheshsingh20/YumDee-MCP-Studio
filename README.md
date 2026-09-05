@@ -56,18 +56,6 @@ The foundational engine powering all MCP Studio tools.
 
 ---
 
-## 💼 CV / Resume Highlights
-
-If you are showcasing this project on your resume or in technical interviews, here are high-impact bullet points:
-
-> **AI & Agentic Systems Project: MCP Studio (Open-Source MCP Toolkit)**
-> - **Engineered a Semantic Tool Router** using vector embeddings and cosine similarity scoring that dynamically prunes inactive tool definitions, reducing LLM context window bloat by **80%** and cutting function-calling latency by **45%** across multi-server agent workflows.
-> - **Built an LLM Root-Cause Analysis (RCA) Copilot** integrated into a live React/Fastify debugger with Server-Sent Events (SSE) that autonomously diagnoses JSON-RPC runtime failures, classifies parameter boundary errors, and synthesizes one-click argument patches.
-> - **Architected an End-to-End ReAct Agent Loop** supporting dynamic multi-server tool aggregation, cycle prevention, and deterministic session auditing across Claude, OpenAI, Ollama, and local models.
-> - **Implemented 4-Part MCP Spec Compliance Benchmarker** tracking P50/P95 latency percentiles and detecting breaking regressions across session replays for CI/CD deployment gating.
-
----
-
 ## 📦 Packages
 
 | Package | Version | Purpose | Status |
