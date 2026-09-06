@@ -75,6 +75,64 @@ export function ToolRunner({
       <div style={{ flex: 1, overflowY: "auto", padding: 18, display: "flex", flexDirection: "column", gap: 14 }}>
         {selectedTool ? (
           <>
+            {/* Remote Tool Metadata Card with Security Notice */}
+            <div
+              style={{
+                backgroundColor: colors.bg,
+                border: colors.border,
+                borderRadius: "5px",
+                padding: 14,
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: colors.accent,
+                    fontFamily: "'Fraunces', serif",
+                  }}
+                >
+                  Remote Tool Description
+                </span>
+                <span
+                  title="Descriptions are provided by the connected MCP server and treated as untrusted input."
+                  style={{
+                    fontSize: 10,
+                    color: colors.textBody,
+                    backgroundColor: colors.surfaceCard2,
+                    padding: "2px 6px",
+                    borderRadius: "4px",
+                    border: colors.border,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
+                  <span>🛡️</span> Untrusted Server Metadata
+                </span>
+              </div>
+
+              <div
+                style={{
+                  fontSize: 12,
+                  color: colors.textHeading,
+                  lineHeight: 1.5,
+                  padding: "8px 10px",
+                  backgroundColor: colors.inputBg,
+                  borderRadius: "4px",
+                  borderLeft: `3px solid ${colors.accent}`,
+                }}
+              >
+                {selectedTool.description ? selectedTool.description : (
+                  <em style={{ color: colors.textBody }}>No description provided by remote server.</em>
+                )}
+              </div>
+            </div>
+
             {/* Parameters Form */}
             <div
               style={{

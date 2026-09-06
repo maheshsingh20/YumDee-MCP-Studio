@@ -1,0 +1,17 @@
+{
+  "name": "memory-mcp",
+  "displayName": "Knowledge Graph Memory",
+  "description": "MCP server implementing persistent graph-based memory storage for conversational context and semantic entities.",
+  "homepage": "https://github.com/modelcontextprotocol/servers/tree/main/src/memory",
+  "repository": "https://github.com/modelcontextprotocol/servers",
+  "transport": "stdio",
+  "command": "npx -y @modelcontextprotocol/server-memory",
+  "author": {
+    "name": "Anthropic",
+    "github": "modelcontextprotocol"
+  },
+  "license": "MIT",
+  "tags": ["memory", "knowledge-graph", "storage", "context"],
+  "verified": true,
+  "lastVerified": "2024-03-01T10:00:00Z"
+}

@@ -1,0 +1,17 @@
+{
+  "name": "everything-mcp",
+  "displayName": "MCP Reference Everything",
+  "description": "The official MCP reference server showcasing all protocol features: tools, prompts, resources, sampling, and notifications.",
+  "homepage": "https://github.com/modelcontextprotocol/servers/tree/main/src/everything",
+  "repository": "https://github.com/modelcontextprotocol/servers",
+  "transport": "stdio",
+  "command": "npx -y @modelcontextprotocol/server-everything",
+  "author": {
+    "name": "Anthropic",
+    "github": "modelcontextprotocol"
+  },
+  "license": "MIT",
+  "tags": ["reference", "testing", "everything", "tools", "resources", "prompts"],
+  "verified": true,
+  "lastVerified": "2024-03-01T10:00:00Z"
+}

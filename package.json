@@ -1,6 +1,6 @@
 {
   "name": "yumdee-mcp-studio",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Open-source all-in-one TypeScript toolkit for the MCP ecosystem",
   "private": true,
   "type": "module",
@@ -11,6 +11,7 @@
     "test": "turbo run test",
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",
+    "validate-listings": "pnpm --filter @yumdee/mcp-studio-registry validate-listings",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\"",
     "clean": "turbo clean && rm -rf node_modules"

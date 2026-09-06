@@ -1,6 +1,6 @@
 {
   "name": "@yumdee/mcp-studio-bench",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Compliance & reliability scoring for MCP servers",
   "type": "module",
   "main": "./dist/index.js",

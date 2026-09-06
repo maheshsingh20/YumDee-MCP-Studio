@@ -1,6 +1,6 @@
 {
   "name": "@yumdee/mcp-studio-registry",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Community MCP server registry + CLI installer",
   "type": "module",
   "main": "./dist/index.js",
@@ -12,12 +12,13 @@
     "dev": "tsc --watch --incremental",
     "build": "tsc",
     "type-check": "tsc --noEmit",
-    "lint": "eslint src/ servers/",
+    "lint": "eslint src/",
     "validate-listings": "node ./scripts/validate-listings.js",
     "test": "vitest run"
   },
   "files": [
     "dist",
+    "servers",
     "README.md"
   ],
   "publishConfig": {

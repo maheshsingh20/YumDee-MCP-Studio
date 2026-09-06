@@ -84,21 +84,48 @@ export function ToolsExplorer({
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontWeight: 600, color: colors.accent, fontSize: 13 }}>{t.name}</span>
-                  <span
-                    style={{
-                      fontSize: 10,
-                      backgroundColor: colors.surfaceCard1,
-                      color: colors.textBody,
-                      padding: "1px 5px",
-                      borderRadius: "3px",
-                      border: colors.border,
-                    }}
-                  >
-                    {Object.keys(t.inputSchema?.properties || {}).length} args
-                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span
+                      title="Remote server tool"
+                      style={{
+                        fontSize: 9,
+                        color: colors.textBody,
+                        backgroundColor: colors.surfaceCard1,
+                        padding: "1px 4px",
+                        borderRadius: "3px",
+                        border: colors.border,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                      }}
+                    >
+                      Remote
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        backgroundColor: colors.surfaceCard1,
+                        color: colors.textBody,
+                        padding: "1px 5px",
+                        borderRadius: "3px",
+                        border: colors.border,
+                      }}
+                    >
+                      {Object.keys(t.inputSchema?.properties || {}).length} args
+                    </span>
+                  </div>
                 </div>
                 {t.description && (
-                  <div style={{ fontSize: 11, color: colors.textBody, marginTop: 4 }}>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: colors.textBody,
+                      marginTop: 4,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                    title={t.description}
+                  >
                     {t.description}
                   </div>
                 )}

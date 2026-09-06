@@ -1,0 +1,17 @@
+{
+  "name": "sqlite-mcp",
+  "displayName": "SQLite Database Explorer",
+  "description": "MCP server for querying and inspecting local SQLite databases, running read queries, and inspecting table schemas.",
+  "homepage": "https://github.com/modelcontextprotocol/servers/tree/main/src/sqlite",
+  "repository": "https://github.com/modelcontextprotocol/servers",
+  "transport": "stdio",
+  "command": "npx -y @modelcontextprotocol/server-sqlite --db-path ./test.db",
+  "author": {
+    "name": "Anthropic",
+    "github": "modelcontextprotocol"
+  },
+  "license": "MIT",
+  "tags": ["database", "sqlite", "sql", "storage"],
+  "verified": true,
+  "lastVerified": "2024-03-01T10:00:00Z"
+}

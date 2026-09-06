@@ -39,5 +39,9 @@ jobs:
       - name: Run Type Check
         run: pnpm type-check
 
-      - name: Run Vitest Suite (All 12 Tests)
+      - name: Validate Registry Listings
+        run: pnpm validate-listings
+
+      - name: Run Vitest Suite
         run: pnpm test
+

@@ -1,6 +1,6 @@
 {
   "name": "@yumdee/mcp-studio-core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Core session format, MCP client abstraction, and storage interfaces",
   "type": "module",
   "main": "./dist/index.js",

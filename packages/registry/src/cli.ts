@@ -6,18 +6,18 @@
  * Entry point: npx mcp-studio
  *
  * Commands:
- *   mcp-studio search <keyword>     # Search for servers
- *   mcp-studio list                 # List all available servers
- *   mcp-studio add <name>           # Install server to Claude Desktop / Cursor
- *   mcp-studio validate             # Validate all server listings
+ *   mcp-studio search <keyword>                       # Search for servers
+ *   mcp-studio list                                   # List all available servers
+ *   mcp-studio add <name> [--target claude|cursor]    # Install server to Claude Desktop / Cursor
+ *   mcp-studio validate                               # Validate all server listings
  */
 
 import { promises as fs } from "fs";
 import * as path from "path";
 import * as os from "os";
-import { createRegistry, ServerListing } from "./registry.js";
+import { createRegistry, buildServerConfig, ServerListing } from "./registry.js";
 
-function getClaudeConfigPath(): string {
+export function getClaudeConfigPath(): string {
   const platform = process.platform;
   if (platform === "win32") {
     const appData = process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming");
@@ -29,12 +29,16 @@ function getClaudeConfigPath(): string {
   }
 }
 
-function getCursorConfigPath(): string {
+export function getCursorConfigPath(): string {
   return path.join(os.homedir(), ".cursor", "mcp.json");
 }
 
-async function addServerToConfig(server: ServerListing, targetApp: "claude" | "cursor" = "claude") {
-  const configPath = targetApp === "claude" ? getClaudeConfigPath() : getCursorConfigPath();
+export async function addServerToConfig(
+  server: ServerListing,
+  targetApp: "claude" | "cursor" = "claude",
+  customConfigPath?: string
+): Promise<string> {
+  const configPath = customConfigPath || (targetApp === "claude" ? getClaudeConfigPath() : getCursorConfigPath());
   const configDir = path.dirname(configPath);
 
   await fs.mkdir(configDir, { recursive: true });
@@ -54,24 +58,33 @@ async function addServerToConfig(server: ServerListing, targetApp: "claude" | "c
     }
   }
 
-  // Parse command & arguments
-  let command = server.command || "npx";
-  let args: string[] = [];
-  if (server.command && server.command.includes(" ")) {
-    const parts = server.command.split(" ");
-    command = parts[0];
-    args = parts.slice(1);
-  }
+  const serverConfig = buildServerConfig(server);
 
-  config.mcpServers[server.name] = {
-    command,
-    args,
-    env: {},
-  };
+  config.mcpServers[server.name] = serverConfig;
 
   await fs.writeFile(configPath, JSON.stringify(config, null, 2), "utf8");
   console.log(`✅ Successfully added "${server.displayName}" (${server.name}) to ${targetApp} config!`);
   console.log(`📁 Config path: ${configPath}`);
+  return configPath;
+}
+
+export function parseTargetApp(args: string[]): "claude" | "cursor" {
+  const targetIndex = args.indexOf("--target");
+  if (targetIndex !== -1 && args[targetIndex + 1]) {
+    const val = args[targetIndex + 1].toLowerCase();
+    if (val === "cursor") return "cursor";
+    if (val === "claude") return "claude";
+  }
+  const flagWithEqual = args.find((a) => a.startsWith("--target="));
+  if (flagWithEqual) {
+    const val = flagWithEqual.split("=")[1]?.toLowerCase();
+    if (val === "cursor") return "cursor";
+    if (val === "claude") return "claude";
+  }
+  if (args.includes("--cursor") || args.includes("cursor")) {
+    return "cursor";
+  }
+  return "claude";
 }
 
 async function main() {
@@ -111,7 +124,7 @@ async function main() {
       servers.forEach((server) => {
         const verified = server.verified ? "✓" : " ";
         const tags = server.tags ? `[${server.tags.join(", ")}]` : "";
-        console.log(`[${verified}] ${server.displayName.padEnd(22)} (${server.name.padEnd(16)}) ${tags}`);
+        console.log(`[${verified}] ${server.displayName.padEnd(28)} (${server.name.padEnd(18)}) ${tags}`);
       });
       break;
     }
@@ -122,7 +135,7 @@ async function main() {
         console.error("Usage: mcp-studio add <name> [--target claude|cursor]");
         process.exit(1);
       }
-      const targetFlag = args.includes("--cursor") || args.includes("cursor") ? "cursor" : "claude";
+      const targetFlag = parseTargetApp(args);
       const server = registry.get(name);
       if (!server) {
         console.error(`Error: Server "${name}" not found in registry.`);
@@ -130,7 +143,7 @@ async function main() {
         process.exit(1);
       }
 
-      console.log(`Installing ${server.displayName} (${server.name})...`);
+      console.log(`Installing ${server.displayName} (${server.name}) for ${targetFlag}...`);
       await addServerToConfig(server, targetFlag);
       break;
     }
@@ -141,7 +154,7 @@ async function main() {
       let errors = 0;
 
       for (const server of servers) {
-        if (!server.name || !server.command && !server.endpoint) {
+        if (!server.name || (!server.command && !server.endpoint)) {
           console.error(`❌ Invalid listing: ${server.name} missing command or endpoint.`);
           errors++;
         } else {
@@ -164,14 +177,25 @@ async function main() {
       console.log("Commands:");
       console.log("  search <keyword>                   Search for servers");
       console.log("  list                               List all servers");
-      console.log("  add <name> [--target cursor]       Install a server into Claude Desktop / Cursor");
+      console.log("  add <name> [--target claude|cursor] Install a server into Claude Desktop / Cursor");
       console.log("  validate                           Validate server listings");
       break;
     }
   }
 }
 
-main().catch((err) => {
-  console.error("Fatal error:", err);
-  process.exit(1);
-});
+import { fileURLToPath } from "url";
+
+// Execute main if run directly as a CLI script
+const isDirectRun = Boolean(
+  process.argv[1] &&
+  fileURLToPath(import.meta.url).toLowerCase() === path.resolve(process.argv[1]).toLowerCase()
+);
+
+if (isDirectRun) {
+  main().catch((err) => {
+    console.error("Fatal error:", err);
+    process.exit(1);
+  });
+}
+

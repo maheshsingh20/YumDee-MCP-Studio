@@ -1,0 +1,17 @@
+{
+  "name": "fetch-mcp",
+  "displayName": "Web Fetch & HTML Parser",
+  "description": "MCP server to fetch web content and convert HTML pages into clean markdown for LLM ingestion.",
+  "homepage": "https://github.com/modelcontextprotocol/servers/tree/main/src/fetch",
+  "repository": "https://github.com/modelcontextprotocol/servers",
+  "transport": "stdio",
+  "command": "npx -y @modelcontextprotocol/server-fetch",
+  "author": {
+    "name": "Anthropic",
+    "github": "modelcontextprotocol"
+  },
+  "license": "MIT",
+  "tags": ["fetch", "web", "html", "markdown", "http"],
+  "verified": true,
+  "lastVerified": "2024-03-01T10:00:00Z"
+}
