@@ -1,6 +1,7 @@
 {
   "name": "yumdee-mcp-studio-docs",
   "version": "0.1.0",
+  "private": true,
   "description": "Documentation site for yumdee-Mcp-studio",
   "type": "module",
   "scripts": {

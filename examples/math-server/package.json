@@ -1,6 +1,7 @@
 {
   "name": "@yumdee/mcp-studio-examples-math",
   "version": "0.1.0",
+  "private": true,
   "description": "Example MCP server: simple math calculator",
   "type": "module",
   "main": "./dist/index.js",
