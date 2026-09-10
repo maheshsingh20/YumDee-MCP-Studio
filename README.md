@@ -13,25 +13,28 @@
 
 ## 🚀 Features
 
-### 🔍 Inspector with AI Diagnostic Copilot
-Visual debugger and monitoring console for MCP servers with live event streams, deterministic session replay, and an inline AI Diagnostic Copilot.
+### 🔍 Inspector with Gemini AI Suite
+Visual debugger, live monitoring console, and AI orchestrator for MCP servers with real-time event streams, deterministic session replay, security auditing, and an autonomous Agent Playground.
 
-- **✨ AI Root-Cause Diagnostic & Auto-Fix**: Automatically diagnoses failed JSON-RPC tool executions, identifies missing required parameters, type mismatches, and boundary conditions (e.g. division by zero), and synthesizes one-click argument patches directly in the UI.
+- **✨ Gemini AI Diagnostic Copilot**: Deep root-cause analysis (RCA) and 1-click argument auto-patching for failed MCP tool calls. Leverages Google Gemini with seamless zero-key heuristic fallback.
+- **🤖 Live Multi-Server Agent Playground**: Interactive chat interface in the Inspector UI where Gemini orchestrates multi-step workflows across connected MCP servers with a live tool execution trace and collapsible argument/result inspections.
+- **🛡️ Automated Server Security & Prompt-Injection Auditor**: Comprehensive security scorecard evaluating servers for prompt-injection vectors, command injection vulnerabilities, path traversals, and boundary leaks with remediation recommendations, letter grades (A+ to F), and 1-click Markdown (.md) and JSON export.
+- **⚙️ AI Settings & In-Browser Key Storage**: Secure client-side API key management (`localStorage`), model selector (`gemini-2.0-flash`, `gemini-2.5-flash`), live connection verification, and zero-key local fallback.
 - **Warm Minimalist Design System**: Built with an editorial serif + geometric sans pairing (**Fraunces** & **Plus Jakarta Sans**), flat 0.5px tinted borders, 5px radius, and a complete light/dark mode color swap.
 - **Direct Server Connection**: Connect to local stdio servers (`node server.js`, `python server.py`, `npx ...`) or remote HTTP servers with smart relative path resolution.
 - **Interactive Tool Execution**: Auto-generated schema-based forms for invoking tools with parameter type validation and formatted JSON response inspection.
 - **Live Event Stream**: Real-time Server-Sent Events (SSE) tracking requests, responses, tool calls, and latencies.
 - **Session Recording & Replay**: Record execution traces to standardized `McpSession` files and visually replay them step-by-step with diff comparisons.
-- **One-Click Presets**: Instant connection buttons for bundled example servers (e.g., Math Server).
+- **One-Click Quick Presets**: Instant connection chips for verified local stdio servers, public cloud MCP endpoints (`https://aisenseapi.com/mcp`), and official npm servers (Memory, Filesystem, Everything).
 
 ### 🤖 Agent-kit with Dynamic Semantic Tool Router
 Multi-server orchestration framework that binds multiple MCP servers into an intelligent agent workflow with vector-based tool retrieval.
 
 - **🧠 Dynamic Semantic Tool Router**: Employs vector embeddings and cosine similarity to dynamically select the top-K relevant tools for each turn. Prunes inactive tool definitions to cut prompt token usage by **70–90%** and prevent LLM tool hallucinations.
-- **Dual Vectorizer Architecture**: Includes a high-speed, zero-dependency subword n-gram / TF-IDF sparse vectorizer out of the box, with support for dense embedding providers (OpenAI `text-embedding-3-small`, Ollama `nomic-embed-text`).
+- **Gemini Embeddings (`gemini-embedding-001`) & In-Memory Vector Cache**: Native zero-dependency REST integration with Google Gemini embedding models, in-memory caching to eliminate duplicate API calls, and zero-dependency subword n-gram / TF-IDF sparse vectorizer.
 - **Multi-Server Aggregation**: Merge tools, prompts, and resources from 2+ independent MCP servers into a single interface.
 - **ReAct Execution Loop**: Built-in reasoning and acting loop with cycle detection and max-step safety guards.
-- **Pluggable LLM Adapters**: Native support for **Claude**, **OpenAI**, **Ollama**, and deterministic **Mock** models.
+- **Pluggable LLM Adapters**: Native support for **Gemini**, **Claude**, **OpenAI**, **Ollama**, and deterministic **Mock** models.
 - **Audit-Ready Sessions**: Exports agent executions as standard `McpSession` files with token reduction metrics.
 
 ### ⚡ Bench

@@ -60,6 +60,7 @@ export interface DiagnosticResult {
   suggestedFix: string;
   correctedArgs?: any;
   confidence: number;
+  provider?: "gemini" | "heuristic";
 }
 
 export interface ReplayItem {
@@ -71,4 +72,58 @@ export interface ReplayItem {
   replayedError?: any;
   replayedLatencyMs: number;
   matched: boolean;
+}
+
+export type ViewMode = "inspector" | "agent" | "audit";
+
+export interface AiSettings {
+  apiKey: string;
+  model: string;
+  status?: "untested" | "valid" | "invalid";
+  statusMessage?: string;
+}
+
+export interface AgentStep {
+  toolName: string;
+  args: any;
+  result?: any;
+  error?: string;
+  latencyMs?: number;
+}
+
+export interface AgentMessage {
+  id: string;
+  role: "user" | "assistant" | "system";
+  content: string;
+  steps?: AgentStep[];
+  metrics?: {
+    totalCandidateTools?: number;
+    selectedTools?: number;
+    tokenSavingsPercent?: number;
+    reductionFactor?: number;
+  };
+  timestamp: string;
+}
+
+export interface SecurityIssue {
+  id: string;
+  category: string;
+  severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO";
+  title: string;
+  description: string;
+  toolName?: string;
+  paramName?: string;
+  evidence?: string;
+  recommendation: string;
+}
+
+export interface SecurityAuditReport {
+  serverName: string;
+  timestamp: string;
+  overallScore: number;
+  grade: "A+" | "A" | "B" | "C" | "D" | "F";
+  totalToolsScanned: number;
+  issues: SecurityIssue[];
+  summary: string;
+  recommendations: string[];
 }

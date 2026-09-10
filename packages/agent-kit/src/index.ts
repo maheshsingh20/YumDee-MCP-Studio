@@ -19,6 +19,15 @@ import {
   SparseSemanticVectorizer,
   cosineSimilarity,
 } from "./router.js";
+import {
+  callGeminiGenerateContent,
+  generateGeminiEmbedding,
+  verifyGeminiApiKey,
+  formatMcpToolToGemini,
+  type GeminiContent,
+  type GeminiPart,
+  type GeminiResponse,
+} from "./gemini.js";
 
 export {
   SemanticToolRouter,
@@ -26,6 +35,13 @@ export {
   type RouteResult,
   SparseSemanticVectorizer,
   cosineSimilarity,
+  callGeminiGenerateContent,
+  generateGeminiEmbedding,
+  verifyGeminiApiKey,
+  formatMcpToolToGemini,
+  type GeminiContent,
+  type GeminiPart,
+  type GeminiResponse,
 };
 
 /**
@@ -33,7 +49,7 @@ export {
  */
 export interface AgentConfig {
   servers: McpClient[];
-  model: "claude" | "gpt" | "ollama" | "mock";
+  model: "claude" | "gpt" | "gemini" | "ollama" | "mock";
   modelName?: string;
   apiKey?: string;
   baseUrl?: string;
@@ -59,7 +75,7 @@ interface DiscoveredTool {
  */
 export class Agent {
   private servers: McpClient[];
-  private model: "claude" | "gpt" | "ollama" | "mock";
+  private model: "claude" | "gpt" | "gemini" | "ollama" | "mock";
   private modelName: string;
   private apiKey?: string;
   private baseUrl?: string;
@@ -74,8 +90,22 @@ export class Agent {
   constructor(config: AgentConfig) {
     this.servers = config.servers;
     this.model = config.model;
-    this.modelName = config.modelName || (config.model === "ollama" ? "llama3" : config.model === "claude" ? "claude-3-5-sonnet-20241022" : "gpt-4o");
-    this.apiKey = config.apiKey || (config.model === "claude" ? process.env.ANTHROPIC_API_KEY : process.env.OPENAI_API_KEY);
+    this.modelName =
+      config.modelName ||
+      (config.model === "ollama"
+        ? "llama3"
+        : config.model === "gemini"
+        ? "gemini-1.5-flash"
+        : config.model === "claude"
+        ? "claude-3-5-sonnet-20241022"
+        : "gpt-4o");
+    this.apiKey =
+      config.apiKey ||
+      (config.model === "gemini"
+        ? process.env.GEMINI_API_KEY
+        : config.model === "claude"
+        ? process.env.ANTHROPIC_API_KEY
+        : process.env.OPENAI_API_KEY);
     this.baseUrl = config.baseUrl;
     this.maxSteps = config.maxSteps || 10;
     this.systemPrompt = config.systemPrompt;
@@ -381,6 +411,44 @@ export class Agent {
       }));
 
       return { content: textBlocks, toolCalls };
+    }
+
+    if (this.model === "gemini") {
+      if (!this.apiKey) {
+        throw new Error("GEMINI_API_KEY is required for Gemini model adapter");
+      }
+      const tools = toolsPool.map((t) =>
+        formatMcpToolToGemini({
+          name: t.uniqueName,
+          description: t.definition.description,
+          inputSchema: t.definition.inputSchema,
+        })
+      );
+
+      const contents: GeminiContent[] = messages
+        .filter((m) => m.role !== "system")
+        .map((m) => {
+          const text = typeof m.content === "string" ? m.content : JSON.stringify(m.content);
+          return {
+            role: m.role === "assistant" ? ("model" as const) : ("user" as const),
+            parts: [{ text }],
+          };
+        });
+
+      const system = messages.find((m) => m.role === "system")?.content || this.systemPrompt;
+
+      const res = await callGeminiGenerateContent({
+        apiKey: this.apiKey,
+        model: this.modelName,
+        contents,
+        tools: tools.length > 0 ? tools : undefined,
+        systemInstruction: typeof system === "string" ? system : undefined,
+      });
+
+      return {
+        content: res.text,
+        toolCalls: res.toolCalls,
+      };
     }
 
     return { content: "Unsupported model" };

@@ -199,7 +199,86 @@ function handleToolCall(request: JsonRpcRequest): JsonRpcResponse {
   };
 }
 
+import http from "http";
+
 async function main() {
+  const portArg = process.argv.find((a) => a.startsWith("--port="));
+  const portIdx = process.argv.indexOf("--port");
+  let httpPort: number | null = null;
+
+  if (portArg) {
+    httpPort = parseInt(portArg.split("=")[1], 10);
+  } else if (portIdx !== -1 && process.argv[portIdx + 1]) {
+    httpPort = parseInt(process.argv[portIdx + 1], 10);
+  } else if (process.argv.includes("--http")) {
+    httpPort = 8000;
+  }
+
+  if (httpPort) {
+    const server = http.createServer((req, res) => {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+      if (req.method === "OPTIONS") {
+        res.writeHead(204);
+        return res.end();
+      }
+
+      if (req.method === "POST") {
+        let body = "";
+        req.on("data", (chunk) => {
+          body += chunk;
+        });
+        req.on("end", () => {
+          try {
+            const request = JSON.parse(body) as JsonRpcRequest;
+            let response: JsonRpcResponse;
+
+            if (request.method === "initialize") {
+              response = handleInitialize(request);
+            } else if (request.method === "tools/list") {
+              response = handleListTools(request);
+            } else if (request.method === "tools/call" || request.method?.startsWith("tools/call/")) {
+              response = handleToolCall(request);
+            } else if (request.method === "notifications/initialized") {
+              res.writeHead(204);
+              return res.end();
+            } else {
+              response = {
+                jsonrpc: "2.0",
+                id: request.id,
+                error: { code: -32601, message: "Method not found" },
+              };
+            }
+
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(response));
+          } catch {
+            res.writeHead(400, { "Content-Type": "application/json" });
+            res.end(
+              JSON.stringify({
+                jsonrpc: "2.0",
+                id: null,
+                error: { code: -32700, message: "Parse error" },
+              })
+            );
+          }
+        });
+        return;
+      }
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ name: "math-server", status: "running" }));
+    });
+
+    server.listen(httpPort, () => {
+      console.log(`⚡ Math MCP Server (HTTP) running at http://localhost:${httpPort}/mcp`);
+    });
+    return;
+  }
+
+  // Default: Stdio mode
   const rl = stdin;
   let buffer = "";
 
@@ -222,7 +301,6 @@ async function main() {
         } else if (request.method === "tools/call" || request.method.startsWith("tools/call/")) {
           response = handleToolCall(request);
         } else if (request.method === "notifications/initialized") {
-          // Notification, do not respond
           continue;
         } else {
           response = {

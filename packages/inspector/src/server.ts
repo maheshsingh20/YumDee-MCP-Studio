@@ -20,13 +20,17 @@ import {
 } from "@yumdee/mcp-studio-core";
 import {
   diagnoseToolFailure,
+  diagnoseWithGemini,
   DiagnosticRequest,
   DiagnosticResult,
   DiagnosticCategory,
 } from "./diagnostics.js";
+import { Agent, verifyGeminiApiKey } from "@yumdee/mcp-studio-agent-kit";
+import { createSecurityAuditor } from "@yumdee/mcp-studio-bench";
 
 export {
   diagnoseToolFailure,
+  diagnoseWithGemini,
   DiagnosticRequest,
   DiagnosticResult,
   DiagnosticCategory,
@@ -326,11 +330,121 @@ export class Inspector {
           // POST /api/diagnose - AI Root Cause Diagnostic & Auto-Fix Copilot
           if (pathname === "/api/diagnose" && req.method === "POST") {
             const body = await this.parseBody(req);
-            const diagnostic = diagnoseToolFailure(body);
+            const diagnostic = await diagnoseWithGemini(body);
             return this.sendJson(res, 200, {
               success: true,
               ...diagnostic,
             });
+          }
+
+          // POST /api/agent/chat - Live Multi-Server Agent Playground
+          if (pathname === "/api/agent/chat" && req.method === "POST") {
+            const body = await this.parseBody(req);
+            const { prompt, apiKey, model = "gemini-2.0-flash", useSemanticRouting = true } = body;
+            if (!prompt) {
+              return this.sendJson(res, 400, { error: "prompt is required" });
+            }
+
+            const connectedServers = Array.from(this.activeClients.values());
+            if (connectedServers.length === 0) {
+              return this.sendJson(res, 400, { error: "No connected MCP servers. Connect a server first." });
+            }
+
+            const activeKey = apiKey || process.env.GEMINI_API_KEY;
+            if (!activeKey) {
+              return this.sendJson(res, 400, {
+                error: "GEMINI_API_KEY is required to run the agent. Configure it in AI Settings.",
+              });
+            }
+
+            try {
+              const agent = new Agent({
+                servers: connectedServers,
+                model: "gemini",
+                modelName: model,
+                apiKey: activeKey,
+                useSemanticRouting,
+                semanticRouterConfig: {
+                  geminiApiKey: activeKey,
+                  topK: 3,
+                },
+              });
+
+              const answer = await agent.run(prompt);
+              const session = agent.getSession();
+              const metrics = agent.getRoutingMetrics();
+
+              // Extract tool execution steps from session events
+              const steps = session?.events
+                .filter((e) => e.type === "request" && (e.method === "tools/call" || e.method?.startsWith("tools/call/")))
+                .map((reqEv: any) => {
+                  const respEv: any = session?.events.find((e) => e.type === "response" && e.id === reqEv.id);
+                  const toolName = reqEv.method?.startsWith("tools/call/")
+                    ? reqEv.method.split("/").pop()
+                    : reqEv.params?.name;
+                  return {
+                    toolName,
+                    args: reqEv.params?.arguments || reqEv.params,
+                    result: respEv?.result,
+                    error: respEv?.error,
+                    latencyMs: respEv?.latencyMs,
+                  };
+                });
+
+              return this.sendJson(res, 200, {
+                success: true,
+                answer,
+                steps: steps || [],
+                metrics,
+                sessionId: session?.id,
+              });
+            } catch (err: any) {
+              return this.sendJson(res, 500, {
+                success: false,
+                error: err.message || "Agent execution failed",
+              });
+            }
+          }
+
+          // POST /api/audit - Automated Server Security & Prompt-Injection Audit
+          if (pathname === "/api/audit" && req.method === "POST") {
+            const body = await this.parseBody(req);
+            const { apiKey, model = "gemini-2.0-flash" } = body;
+            const connectedServers = Array.from(this.activeClients.values());
+
+            const allTools: any[] = [];
+            for (const client of connectedServers) {
+              allTools.push(...client.getTools());
+            }
+
+            if (allTools.length === 0) {
+              return this.sendJson(res, 400, { error: "No tools available to audit. Connect a server first." });
+            }
+
+            const auditor = createSecurityAuditor({
+              apiKey: apiKey || process.env.GEMINI_API_KEY,
+              model,
+            });
+
+            const report = await auditor.auditTools(allTools);
+            return this.sendJson(res, 200, {
+              success: true,
+              report,
+            });
+          }
+
+          // POST /api/ai/test - Verify Gemini API Key
+          if (pathname === "/api/ai/test" && req.method === "POST") {
+            const body = await this.parseBody(req);
+            const { apiKey, model = "gemini-2.0-flash" } = body;
+            const activeKey = apiKey || process.env.GEMINI_API_KEY;
+
+            if (!activeKey) {
+              return this.sendJson(res, 400, { error: "GEMINI_API_KEY is required" });
+            }
+
+            const result = await verifyGeminiApiKey(activeKey, model);
+            return this.sendJson(res, 200, result);
           }
 
           // Static UI Serving fallback

@@ -13,6 +13,8 @@
 
 import { McpSession, McpResponseEvent } from "@yumdee/mcp-studio-core";
 
+export * from "./audit.js";
+
 /**
  * Compliance score breakdown by metric
  */

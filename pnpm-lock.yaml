@@ -111,6 +111,12 @@ importers:
 
   packages/inspector:
     dependencies:
+      '@yumdee/mcp-studio-agent-kit':
+        specifier: workspace:*
+        version: link:../agent-kit
+      '@yumdee/mcp-studio-bench':
+        specifier: workspace:*
+        version: link:../bench
       '@yumdee/mcp-studio-core':
         specifier: workspace:*
         version: link:../core

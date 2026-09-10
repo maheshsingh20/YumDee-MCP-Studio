@@ -143,7 +143,7 @@ export class StdioMcpClient implements McpClient {
         this.process.stderr?.on("data", (data: Buffer) => {
           const text = data.toString().trim();
           if (text) {
-            lastStderrText = text;
+            lastStderrText = lastStderrText ? `${lastStderrText}\n${text}` : text;
             const errEvent: ErrorEvent = {
               type: "error",
               timestamp: new Date().toISOString(),

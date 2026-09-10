@@ -83,21 +83,36 @@ export function DiagnosticModal({
             </div>
           ) : diagnostic ? (
             <>
-              {/* Category & Confidence Badge */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span
-                  style={{
-                    backgroundColor: colors.accent,
-                    color: colors.btnFilledText,
-                    padding: "3px 10px",
-                    borderRadius: "4px",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    letterSpacing: "0.5px",
-                  }}
-                >
-                  {diagnostic.category}
-                </span>
+              {/* Category, Provider & Confidence Badge */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span
+                    style={{
+                      backgroundColor: colors.accent,
+                      color: colors.btnFilledText,
+                      padding: "3px 10px",
+                      borderRadius: "4px",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    {diagnostic.category}
+                  </span>
+                  <span
+                    style={{
+                      backgroundColor: diagnostic.provider === "gemini" ? "#526E48" : colors.surfaceCard2,
+                      color: diagnostic.provider === "gemini" ? "#FFFFFF" : colors.textHeading,
+                      border: colors.border,
+                      padding: "3px 8px",
+                      borderRadius: "4px",
+                      fontSize: 11,
+                      fontWeight: 600,
+                    }}
+                  >
+                    {diagnostic.provider === "gemini" ? "✨ Gemini Copilot" : "⚡ Heuristic Engine"}
+                  </span>
+                </div>
                 <span style={{ fontSize: 12, color: colors.textBody }}>
                   Confidence: <strong>{Math.round((diagnostic.confidence || 0.9) * 100)}%</strong>
                 </span>

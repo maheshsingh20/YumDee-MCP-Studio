@@ -1,5 +1,5 @@
 import React from "react";
-import { ThemeColors, ThemeMode, ServerInfo } from "../types.js";
+import { ThemeColors, ThemeMode, ServerInfo, ViewMode } from "../types.js";
 
 interface NavbarProps {
   colors: ThemeColors;
@@ -10,6 +10,10 @@ interface NavbarProps {
   onOpenReplay: () => void;
   onSaveSession: () => void;
   sessionId: string | null;
+  viewMode: ViewMode;
+  setViewMode: (mode: ViewMode) => void;
+  onOpenAiSettings: () => void;
+  hasAiKey: boolean;
 }
 
 export function Navbar({
@@ -21,13 +25,17 @@ export function Navbar({
   onOpenReplay,
   onSaveSession,
   sessionId,
+  viewMode,
+  setViewMode,
+  onOpenAiSettings,
+  hasAiKey,
 }: NavbarProps) {
   return (
     <header
       style={{
         borderBottom: colors.border,
         backgroundColor: colors.surfaceCard1,
-        padding: "0 32px",
+        padding: "0 28px",
         height: 64,
         display: "flex",
         alignItems: "center",
@@ -35,15 +43,16 @@ export function Navbar({
         position: "sticky",
         top: 0,
         zIndex: 100,
+        gap: 16,
       }}
     >
       {/* Brand Logo */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
         <span
           style={{
             fontFamily: "'Fraunces', serif",
             fontWeight: 700,
-            fontSize: 22,
+            fontSize: 21,
             letterSpacing: "-0.5px",
             color: colors.accent,
           }}
@@ -56,35 +65,126 @@ export function Navbar({
             color: colors.badgeText,
             fontSize: 10,
             fontWeight: 700,
-            padding: "2px 8px",
+            padding: "2px 7px",
             borderRadius: "4px",
             letterSpacing: "0.5px",
           }}
         >
-          v0.1.0
+          v0.3.0
         </span>
       </div>
 
-      {/* Navigation Links */}
-      <nav style={{ display: "flex", gap: 24, fontSize: 13, fontWeight: 500 }}>
-        <a href="#workspace" style={{ color: colors.textBody, textDecoration: "none" }}>
-          Workspace
-        </a>
-        <a href="#features" style={{ color: colors.textBody, textDecoration: "none" }}>
-          Capabilities
-        </a>
-        <a
-          href="https://github.com/maheshsingh20/YumDee-MCP-Studio"
-          target="_blank"
-          rel="noreferrer"
-          style={{ color: colors.textBody, textDecoration: "none" }}
+      {/* Center View Mode Switcher Tabs */}
+      <div
+        style={{
+          display: "flex",
+          backgroundColor: colors.surfaceCard2,
+          border: colors.border,
+          borderRadius: "6px",
+          padding: 3,
+          gap: 2,
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => setViewMode("inspector")}
+          style={{
+            padding: "6px 14px",
+            borderRadius: "4px",
+            border: "none",
+            backgroundColor: viewMode === "inspector" ? colors.accent : "transparent",
+            color: viewMode === "inspector" ? colors.btnFilledText : colors.textHeading,
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            transition: "all 0.15s ease",
+          }}
         >
-          GitHub
-        </a>
-      </nav>
+          <span>🔍</span>
+          <span>Inspector</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setViewMode("agent")}
+          style={{
+            padding: "6px 14px",
+            borderRadius: "4px",
+            border: "none",
+            backgroundColor: viewMode === "agent" ? colors.accent : "transparent",
+            color: viewMode === "agent" ? colors.btnFilledText : colors.textHeading,
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            transition: "all 0.15s ease",
+          }}
+        >
+          <span>🤖</span>
+          <span>Agent Playground</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setViewMode("audit")}
+          style={{
+            padding: "6px 14px",
+            borderRadius: "4px",
+            border: "none",
+            backgroundColor: viewMode === "audit" ? colors.accent : "transparent",
+            color: viewMode === "audit" ? colors.btnFilledText : colors.textHeading,
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            transition: "all 0.15s ease",
+          }}
+        >
+          <span>🛡️</span>
+          <span>Security Audit</span>
+        </button>
+      </div>
 
       {/* Action Controls */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+        {/* AI Settings Button */}
+        <button
+          type="button"
+          onClick={onOpenAiSettings}
+          title="Configure Google Gemini API Key & Models"
+          style={{
+            backgroundColor: colors.surfaceCard2,
+            color: colors.textHeading,
+            border: colors.border,
+            borderRadius: "5px",
+            padding: "6px 12px",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+          }}
+        >
+          <span>⚙️ AI Settings</span>
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              backgroundColor: hasAiKey ? "#10B981" : "#F59E0B",
+            }}
+            title={hasAiKey ? "Gemini Key Configured" : "Zero-Key Heuristic Active"}
+          />
+        </button>
+
         {connected && sessionId && (
           <button
             type="button"
@@ -94,7 +194,7 @@ export function Navbar({
               color: colors.accent,
               border: colors.border,
               borderRadius: "5px",
-              padding: "6px 12px",
+              padding: "6px 10px",
               fontSize: 12,
               fontWeight: 600,
               cursor: "pointer",
@@ -112,7 +212,7 @@ export function Navbar({
             color: colors.accent,
             border: colors.border,
             borderRadius: "5px",
-            padding: "6px 12px",
+            padding: "6px 10px",
             fontSize: 12,
             fontWeight: 600,
             cursor: "pointer",
@@ -130,16 +230,16 @@ export function Navbar({
             color: colors.textHeading,
             border: colors.border,
             borderRadius: "5px",
-            padding: "6px 12px",
+            padding: "6px 10px",
             fontSize: 12,
             fontWeight: 600,
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
-            gap: 6,
+            gap: 4,
           }}
         >
-          {theme === "light" ? "🌙 Dark" : "☀️ Light"}
+          {theme === "light" ? "🌙" : "☀️"}
         </button>
 
         {/* Connection Status Pill */}
@@ -150,10 +250,10 @@ export function Navbar({
             gap: 6,
             backgroundColor: colors.surfaceCard2,
             border: colors.border,
-            padding: "5px 12px",
+            padding: "5px 10px",
             borderRadius: "5px",
-            fontSize: 12,
-            fontWeight: 500,
+            fontSize: 11,
+            fontWeight: 600,
           }}
         >
           <span

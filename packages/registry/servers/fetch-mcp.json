@@ -5,7 +5,7 @@
   "homepage": "https://github.com/modelcontextprotocol/servers/tree/main/src/fetch",
   "repository": "https://github.com/modelcontextprotocol/servers",
   "transport": "stdio",
-  "command": "npx -y @modelcontextprotocol/server-fetch",
+  "command": "uvx mcp-server-fetch",
   "author": {
     "name": "Anthropic",
     "github": "modelcontextprotocol"

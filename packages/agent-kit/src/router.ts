@@ -7,6 +7,7 @@
  */
 
 import { ToolDefinition } from "@yumdee/mcp-studio-core";
+import { generateGeminiEmbedding } from "./gemini.js";
 
 export interface SemanticRouterConfig {
   /** Maximum number of tools to select for any given turn (default: 3) */
@@ -15,6 +16,10 @@ export interface SemanticRouterConfig {
   minScore?: number;
   /** Optional custom embedding function (e.g. OpenAI text-embedding-3-small, Ollama nomic-embed-text) */
   embedFn?: (text: string) => Promise<number[]>;
+  /** Optional Google Gemini API key to enable text-embedding-004 dense embeddings */
+  geminiApiKey?: string;
+  /** Optional Gemini embedding model (defaults to text-embedding-004) */
+  geminiModel?: string;
 }
 
 export interface RouteResult<T = ToolDefinition> {
@@ -145,6 +150,7 @@ export class SparseSemanticVectorizer {
  * Semantic Tool Router
  */
 export class SemanticToolRouter<T extends { name: string; description?: string; inputSchema?: any } = ToolDefinition> {
+  private static embeddingCache: Map<string, number[]> = new Map();
   private config: Required<Pick<SemanticRouterConfig, "topK" | "minScore">> & {
     embedFn?: (text: string) => Promise<number[]>;
   };
@@ -156,11 +162,51 @@ export class SemanticToolRouter<T extends { name: string; description?: string; 
   }> = [];
 
   constructor(config: SemanticRouterConfig = {}) {
+    let embedFn = config.embedFn;
+    if (!embedFn && config.geminiApiKey) {
+      embedFn = (text: string) =>
+        generateGeminiEmbedding({
+          apiKey: config.geminiApiKey!,
+          text,
+          model: config.geminiModel || "gemini-embedding-001",
+        });
+    }
+
     this.config = {
       topK: config.topK ?? 3,
       minScore: config.minScore ?? 0.08,
-      embedFn: config.embedFn,
+      embedFn,
     };
+  }
+
+  /**
+   * Clear the static embedding vector cache
+   */
+  static clearEmbeddingCache(): void {
+    SemanticToolRouter.embeddingCache.clear();
+  }
+
+  /**
+   * Get total cached vector embeddings count
+   */
+  static getEmbeddingCacheSize(): number {
+    return SemanticToolRouter.embeddingCache.size;
+  }
+
+  /**
+   * Retrieve embedding from cache or generate via embedFn
+   */
+  private async getCachedEmbedding(text: string): Promise<number[]> {
+    if (!this.config.embedFn) {
+      return this.vectorizer.transform(text);
+    }
+    const cached = SemanticToolRouter.embeddingCache.get(text);
+    if (cached) {
+      return cached;
+    }
+    const vector = await this.config.embedFn(text);
+    SemanticToolRouter.embeddingCache.set(text, vector);
+    return vector;
   }
 
   /**
@@ -198,14 +244,24 @@ export class SemanticToolRouter<T extends { name: string; description?: string; 
     }
 
     if (this.config.embedFn) {
-      for (const item of this.indexedTools) {
-        item.vector = await this.config.embedFn(item.text);
+      try {
+        for (const item of this.indexedTools) {
+          item.vector = await this.getCachedEmbedding(item.text);
+        }
+        return;
+      } catch (err: any) {
+        console.warn(
+          "[SemanticToolRouter] Embedding generation failed, falling back to local sparse vectorizer:",
+          err?.message || err
+        );
+        this.config.embedFn = undefined;
       }
-    } else {
-      this.vectorizer.fit(documents);
-      for (const item of this.indexedTools) {
-        item.vector = this.vectorizer.transform(item.text);
-      }
+    }
+
+    // Local sparse TF-IDF vectorizer fallback
+    this.vectorizer.fit(documents);
+    for (const item of this.indexedTools) {
+      item.vector = this.vectorizer.transform(item.text);
     }
   }
 
@@ -233,9 +289,20 @@ export class SemanticToolRouter<T extends { name: string; description?: string; 
     }
 
     // Compute query vector
-    const queryVector = this.config.embedFn
-      ? await this.config.embedFn(query)
-      : this.vectorizer.transform(query);
+    let queryVector: number[];
+    if (this.config.embedFn) {
+      try {
+        queryVector = await this.getCachedEmbedding(query);
+      } catch (err: any) {
+        console.warn(
+          "[SemanticToolRouter] Query embedding failed, falling back to local sparse vectorizer:",
+          err?.message || err
+        );
+        queryVector = this.vectorizer.transform(query);
+      }
+    } else {
+      queryVector = this.vectorizer.transform(query);
+    }
 
     // Score all tools
     const scored = this.indexedTools.map((item) => {

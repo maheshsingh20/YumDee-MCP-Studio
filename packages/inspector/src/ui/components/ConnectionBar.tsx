@@ -30,27 +30,32 @@ export function ConnectionBar({
 }: ConnectionBarProps) {
   const presets = [
     {
-      label: "Math Calculator",
+      label: "⚡ Local Math (stdio)",
       transport: "stdio" as const,
       cmd: "node examples/math-server/dist/index.js",
     },
     {
-      label: "🌐 Official Reference (npm)",
-      transport: "stdio" as const,
-      cmd: "npx -y @modelcontextprotocol/server-everything",
+      label: "🌐 Public Cloud (HTTP)",
+      transport: "http" as const,
+      cmd: "https://aisenseapi.com/mcp",
     },
     {
-      label: "Filesystem",
-      transport: "stdio" as const,
-      cmd: "npx -y @modelcontextprotocol/server-filesystem .",
-    },
-    {
-      label: "Memory Graph",
+      label: "🧠 Memory Graph (npm)",
       transport: "stdio" as const,
       cmd: "npx -y @modelcontextprotocol/server-memory",
     },
     {
-      label: "Remote HTTP",
+      label: "📁 Filesystem (npm)",
+      transport: "stdio" as const,
+      cmd: "npx -y @modelcontextprotocol/server-filesystem .",
+    },
+    {
+      label: "🧪 Reference Everything (npm)",
+      transport: "stdio" as const,
+      cmd: "npx -y @modelcontextprotocol/server-everything",
+    },
+    {
+      label: "⚡ Local Math (HTTP)",
       transport: "http" as const,
       cmd: "http://localhost:8000/mcp",
     },
@@ -106,8 +111,8 @@ export function ConnectionBar({
         </div>
 
         {/* Quick Presets */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: colors.textBody }}>
-          <span>Quick Presets:</span>
+        <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6, fontSize: 12, color: colors.textBody }}>
+          <span style={{ fontWeight: 600 }}>Quick Presets:</span>
           {presets.map((p, i) => (
             <button
               key={i}

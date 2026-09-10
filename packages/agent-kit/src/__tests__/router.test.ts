@@ -126,6 +126,37 @@ describe("SemanticToolRouter", () => {
     const result = await router.route("calculate 20 plus 30");
     expect(result.selectedTools[0].name).toBe("calculate");
   });
+
+  it("caches embedding vectors to avoid duplicate API calls", async () => {
+    SemanticToolRouter.clearEmbeddingCache();
+    expect(SemanticToolRouter.getEmbeddingCacheSize()).toBe(0);
+
+    let callCount = 0;
+    const mockEmbedFn = async (_text: string) => {
+      callCount++;
+      return [1, 0, 0];
+    };
+
+    const router = new SemanticToolRouter({
+      embedFn: mockEmbedFn,
+      topK: 2,
+    });
+
+    await router.indexTools(tools);
+    const initialCallCount = callCount;
+    expect(initialCallCount).toBe(tools.length);
+    expect(SemanticToolRouter.getEmbeddingCacheSize()).toBe(tools.length);
+
+    // Re-indexing same tools should hit cache and NOT call mockEmbedFn again
+    await router.indexTools(tools);
+    expect(callCount).toBe(initialCallCount);
+
+    // Querying same query twice should also hit cache
+    await router.route("calculate something");
+    expect(callCount).toBe(initialCallCount + 1);
+    await router.route("calculate something");
+    expect(callCount).toBe(initialCallCount + 1);
+  });
 });
 
 describe("Agent with Semantic Routing", () => {

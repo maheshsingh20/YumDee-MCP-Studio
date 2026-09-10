@@ -1,6 +1,6 @@
 {
   "name": "@yumdee/mcp-studio-registry",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Community MCP server registry + CLI installer",
   "type": "module",
   "main": "./dist/index.js",

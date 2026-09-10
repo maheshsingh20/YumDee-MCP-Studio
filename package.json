@@ -1,6 +1,6 @@
 {
   "name": "yumdee-mcp-studio",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Open-source all-in-one TypeScript toolkit for the MCP ecosystem",
   "private": true,
   "type": "module",

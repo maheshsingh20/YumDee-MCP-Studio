@@ -1,6 +1,6 @@
 {
   "name": "@yumdee/mcp-studio-inspector",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Web UI debugger, session replay, and AI Root-Cause Diagnostic Copilot for Model Context Protocol (MCP) servers",
   "type": "module",
   "main": "./dist/index.js",
@@ -42,6 +42,8 @@
   },
   "dependencies": {
     "@yumdee/mcp-studio-core": "workspace:*",
+    "@yumdee/mcp-studio-agent-kit": "workspace:*",
+    "@yumdee/mcp-studio-bench": "workspace:*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
